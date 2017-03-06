@@ -82,7 +82,7 @@ func (sc *ServerConfig) SetAnswers(versions Versions) {
 图为 Rancher metadata 服务处理 Rancher event 的 log
 ![metadata-processing-event](/images/rancher-dns/metadata-process-event.jpg)
 
-Rancher dns 是采用的轮询超实现的实时更新。Rancher dns 循环向 Rancher metadata 服务发送请求检查 metadata 是否有变化，超时时间是 5s, 如果有版本变化，Rancher dns 会下载最新的 metadata 并更新自己的 dns 记录。否则服务器将等待直到超时返回。相关代码如下：
+Rancher dns 是采用长轮询实现的实时更新。Rancher dns 循环向 Rancher metadata 服务发送请求检查 metadata 是否有变化，超时时间是 5s, 如果有版本变化，Rancher dns 会下载最新的 metadata 并更新自己的 dns 记录。否则服务器将等待直到超时返回。相关代码如下：
 
 ```go
 // https://github.com/rancher/go-rancher-metadata/blob/master/metadata/change.go#L15
@@ -204,7 +204,7 @@ var (
 )
 ```
 
-当 Rancher dns 监听到 metadata 改变更新 dns 记录的时候会清空 `clientSpecificCaches` 缓存，而 `globalCache` 则一直不会清空。以下是相关代码：
+当 Rancher dns 监听到 metadata 改变更新 dns 记录的时候会清空 `clientSpecificCaches` 缓存，而 `globalCache` 则一直不会清空(直到缓存超时)。以下是相关代码：
 
 ```go
 // https://github.com/rancher/rancher-dns/blob/v0.14.1/main.go#L123
