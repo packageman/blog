@@ -1,14 +1,16 @@
 ---
-title: Rancher DNS 实现原理学习总结
+title: Rancher DNS 实现原理总结
 date: 2016-03-06 09:03:14
 tags:
 ---
 
 有关 Rancher dns 的用途[官网](https://docs.rancher.com/rancher/v1.5/en/cattle/internal-dns-service/)已经说的很明白了，我就不再画蛇添足了 :)
 
-特别说明，我学习的 Rancher 版本是当时的最新版本 [Rancher 1.5](https://github.com/rancher/rancher/tree/v1.5.0), 其中 [rancher dns 为 v0.14.1](https://github.com/rancher/rancher-dns/tree/v0.14.1), [rancher-metadata 为 v0.8.11](https://github.com/rancher/rancher-metadata/tree/v0.8.11)。
+特别说明，本次试验的 Rancher 版本为 [Rancher 1.5](https://github.com/rancher/rancher/tree/v1.5.0), 其中 [Rancher dns 为 v0.14.1](https://github.com/rancher/rancher-dns/tree/v0.14.1), [Rancher metadata 为 v0.8.11](https://github.com/rancher/rancher-metadata/tree/v0.8.11)。
 
-在创建完 Rancher server 后，接下来就是要添加 host 到集群中了。而 Rancher dns 就是在添加 host 到 Rancher server 中时作为系统服务自动创建的， 与此同时还会创建 Rancher metadata, Rancher scheduler 等一些其它的系统服务。
+## Rancher dns 创建
+
+Rancher dns 是在创建完 Rancher server 后添加 host 到集群中时作为系统服务自动创建的， 与此同时还会创建 Rancher metadata, Rancher scheduler 等一些其它的系统服务。
 
 提到 Rancher dns 必须要提的另一个系统服务就是 Rancher metadata。因为：
 
