@@ -1,6 +1,6 @@
 ---
 title: Rancher DNS 实现原理总结
-date: 2016-03-06 09:03:14
+date: 2017-03-06 09:03:14
 tags:
 ---
 
@@ -234,6 +234,5 @@ func loadAnswersFromMeta(name string) {
   }
   log.Infof("Reloaded answers")
 }
-
 ```
 
