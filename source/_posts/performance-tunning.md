@@ -30,7 +30,7 @@ tags:
 
 ## 测试场景
 
-- 现有一个餐厅预定系统，系统中存在 50 家餐厅，每家餐厅在某一天存在 1000 个订单，在此基础上
+- 现有一个餐桌预定系统，系统中存在 50 家餐厅，每家餐厅在某一天存在 1000 个订单，在此基础上
 - 我要测试的是模拟 50 个用户持续向这 50 家餐厅发送创建某一天的预约订单请求，持续 10 分钟
 
 ## 测试结果分析
@@ -43,7 +43,7 @@ tags:
 
 - 资源利用率
 
-![improve with nothing](/images/perf_nothing.png)
+![improve with nothing](/images/performance-tunning/perf_nothing.png)
 
 其中黑色表示 MongoDB(本测试系统所使用的数据库) CPU 利用率，蓝色表示 Web Server 的 CPU 利用率(Web Server 与 MongoDB 部署在不同机器上)
 
@@ -174,7 +174,7 @@ db.order.createIndex({restaurantId: 1, isDeleted: 1, isExpired: 1}, {background:
 
 - 资源利用率
 
-![improve with mongo index](/images/perf_mongo_index.png)
+![improve with mongo index](/images/performance-tunning/perf_mongo_index.png)
 
 其中黑色表示 MongoDB CPU 利用率，蓝色表示 Web Server 的 CPU 利用率
 
@@ -185,7 +185,7 @@ db.order.createIndex({restaurantId: 1, isDeleted: 1, isExpired: 1}, {background:
 
 下面是使用透视宝查看慢请求的调用堆栈信息，由于篇幅原因，这里我只截取了部分信息展示
 
-![Call Stack](/images/perf_call_stack.png)
+![Call Stack](/images/performance-tunning/perf_call_stack.png)
 
 通过分析耗时最长的几个方法大概是下面几个：
 
@@ -394,11 +394,11 @@ TFO 的作用是用来优化 TCP 握手过程。客户端第一次建立连接�
 
 - Web Server
 
-![vmstat_web_server](/images/perf_web_server.png)
+![vmstat_web_server](/images/performance-tunning/perf_web_server.png)
 
 - MongoDB
 
-![vmstat_mongo](/images/perf_mongo.png)
+![vmstat_mongo](/images/performance-tunning/perf_mongo.png)
 
 通过监控结果看到，Web Server CPU 持续跑满
 
@@ -406,7 +406,7 @@ TFO 的作用是用来优化 TCP 握手过程。客户端第一次建立连接�
 
 现在系统的架构如下图所示
 
-![perf_architecture](/images/perf_architecture.png)
+![perf_architecture](/images/performance-tunning/perf_architecture.png)
 
 再次进行测试
 
