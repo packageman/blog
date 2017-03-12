@@ -124,11 +124,11 @@ public function killChild()
 
 可以看到 worker 进程的退出是通过 `$this->shutdown` 变量控制的，而这个变量的检查是在子进程退出后或根本没有任务可执行的时候判断的。所以不论是 `shutdown` 还是 `shutDownNow`，父进程的退出都不会有子进程存在。
 
-题外话：[Supervisor 在关闭进程时默认发送的是 *SIGTERM* 并设置 10 秒种的超时时间，如果超过这个时间进程仍然没有关闭，Supervisor 将发送 *SIGKILL* 强制关闭该进程](http://supervisord.org/configuration.html#program-x-section-values)。为了避免在重新启动 worker 的时候导致正在执行的任务由于强制中止而失败，在生产环境中我们应该使用 *SIGQUIT* 停止 worker 并根据业务需要设置合理的超时时间以实现平滑关闭。
+题外话：[Supervisor 在关闭进程时默认发送的是 *SIGTERM* 并设置 10 秒种的超时时间，如果超过这个时间进程仍然没有关闭，Supervisor 将发送 *SIGKILL* 强制关闭该进程](http://supervisord.org/configuration.html#program-x-section-values)。为了避免在重新启动 worker 的时候导致正在执行的任务由于强制终止而失败，在生产环境中我们应该使用 *SIGQUIT* 停止 worker 并根据业务需要设置合理的超时时间以实现平滑关闭。
 
-我被困住了，完全不知道是因为什么原因。Supervisor 重启发送 *SIGTERM* (这里我使用的是默认的配置)首先关闭 worker, worker 强制结束子进程(如果有的话)再退出，Supervisor 启动新的 worker。这一切都看起来很合理，可事实却并非如此。
+目前为止，我了解到的是 Supervisor 重启发送 *SIGTERM* (这里我使用的是默认的配置)首先关闭 worker, worker 强制结束子进程(如果有的话)再退出，Supervisor 启动新的 worker。这一切都看起来很合理，可事实却并非如此。
 
-这个问题困扰了我很久，终于读到了这篇文章 [Docker and the PID 1 zombie reaping problem](https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)，里面提到在使用 `/bin/bash -c` 启动进程的时候一定要小心，因为这样启动的进程相当于先执行 bash，再由 bash 创建一个子进程执行真正要执行的进程。而 bash 是不会处理信号的也不会传播信号给子进程，这样在发送 *SIGTERM* 给 bash 进程就会导致 bash 进程退出，bash 的子进程变为孤儿进程... 读到这，感觉这一幕似曾相识啊，赶紧看看 worker 在 Supervisor 中配置文件，果然是用 bash 启动的。以下是 Supervisor 中的 worker 的配置文件：
+到底是哪里出问题了？这个问题困扰了我很久，终于读到了这篇文章 [Docker and the PID 1 zombie reaping problem](https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/)，里面提到在使用 `/bin/bash -c` 启动进程的时候一定要小心，因为这样启动的进程相当于先执行 bash，再由 bash 创建一个子进程执行真正要执行的进程。而 bash 是不会处理信号的也不会传播信号给子进程，这样在发送 *SIGTERM* 给 bash 进程就会导致 bash 进程退出，bash 的子进程变为孤儿进程... 读到这，感觉这一幕似曾相识啊，赶紧看看 worker 在 Supervisor 中配置文件，果然是用 bash 启动的。以下是 Supervisor 中的 worker 的配置文件：
 
 ![Supervisor-config](/images/resque-supervisor/supervisor_config.png)
 
