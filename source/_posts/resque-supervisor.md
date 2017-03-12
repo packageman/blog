@@ -24,7 +24,7 @@ tags:
 
 ![Supervisor-process](/images/resque-supervisor/supervisor_process.png)
 
-正好最近在看《UNIX环境高级编程》这本书，里面有介绍，当一个进程的父进程终止后，这个进程就会变为孤儿进程，从而会被 init 进程领养。所以我猜想父进程是 1 的 worker 就是由于 supervisor 在重起 worker 时并没有把旧的 worker 的进程全部清理掉导致的。
+正好最近在看《UNIX环境高级编程》这本书，里面有介绍，当一个进程的父进程终止后，这个进程就会变为孤儿进程，从而会被 init 进程领养。所以我猜想父进程是 1 的 worker 就是由于 supervisor 在重启 worker 时并没有把旧的 worker 的进程全部清理掉导致的。
 
 首先把这些"有问题"的 worker 手动清理掉，再测试一下发短信功能，一些正常。看来就是这个“有问题”的 worker 捣的鬼了，可是这些“有问题”的 worker 是如果产生的？
 
@@ -41,7 +41,7 @@ public function work($interval = Resque::DEFAULT_INTERVAL, $blocking = false)
 	// startup 中会调用 registerSigHandlers
 	$this->startup();
 	while(true) {
-	    if($this->shutdown) {
+		if($this->shutdown) {
 			break;
 		}
 		...
@@ -92,7 +92,7 @@ private function registerSigHandlers()
 }
 ```
 
-看到这儿，我猜想会不会是因为，在 worker fork 一个子进程后，这个子进程正在执行任务，这时使用 supervisor 重起 worker 导致了父进程收到了 *SIGTERM* 或 *SIGINT* 信号立即退出(shutDowNow)。而子进程还在执行任务(未退出)导致了子进程被 init 进程领养？
+看到这儿，我猜想会不会是因为，在 worker fork 一个子进程后，这个子进程正在执行任务，这时使用 supervisor 重启 worker 导致了父进程收到了 *SIGTERM* 或 *SIGINT* 信号立即退出(shutDowNow)。而子进程还在执行任务(未退出)导致了子进程被 init 进程领养？
 
 然而这个猜想在我看完 [`shutDownNow`](https://github.com/chrisboulton/php-resque/blob/master/lib/Resque/Worker.php#L391), [`shutdown`](https://github.com/chrisboulton/php-resque/blob/master/lib/Resque/Worker.php#L381), [`killChild`](https://github.com/chrisboulton/php-resque/blob/master/lib/Resque/Worker.php#L401) 这些信号回调函数的实现后被无情的否定了。请看以下代码：
 
@@ -122,7 +122,7 @@ public function killChild()
 }
 ```
 
-可以看到不管是怎样退出，父进程都是等到子进程退出或被强制退出后再退出。
+可以看到 worker 进程的退出是通过 `$this->shutdown` 变量控制的，而这个变量的检查是在子进程退出后或根本没有任务可执行的时候判断的。所以不论是 `shutdown` 还是 `shutDownNow`，父进程的退出都不会有子进程存在。
 
 题外话：[Supervisor 在关闭进程时默认发送的是 *SIGTERM* 并设置 10 秒种的超时时间，如果超过这个时间进程仍然没有关闭，Supervisor 将发送 *SIGKILL* 强制关闭该进程](http://supervisord.org/configuration.html#program-x-section-values)。为了避免在重新启动 worker 的时候导致正在执行的任务由于强制中止而失败，在生产环境中我们应该使用 *SIGQUIT* 停止 worker 并根据业务需要设置合理的超时时间以实现平滑关闭。
 
