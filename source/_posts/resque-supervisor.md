@@ -151,6 +151,7 @@ public function killChild()
 shutdown() {
   echo 'gracefully shutting down resque worker...'
   kill -s QUIT ${pid}
+  wait ${pid}
 }
 
 trap shutdown SIGINT SIGQUIT SIGTERM
@@ -174,6 +175,6 @@ wait ${pid}
 - http://supervisord.org/
 - https://blog.phusion.nl/2015/01/20/docker-and-the-pid-1-zombie-reaping-problem/
 - https://github.com/inetfuture/blog/issues/3
-- http://redsymbol.net/articles/bash-exit-traps/
+- http://veithen.github.io/2014/11/16/sigterm-propagation.html
 
 
