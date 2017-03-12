@@ -140,7 +140,7 @@ public function killChild()
 
 现在已经找到问题了，该解决问题了。其实思路很简单，可以从两方面考虑：
 
-- 不再使用 bash 的方式启动，改为使用 `exec`
+- 不再使用 bash 的方式启动，改为使用 `exec` (适用于在进程结束没有后续工作要处理的情况)
 - 通过代码捕获 bash 收到的信号，并将信号发送给子进程
 
 这里我使用第二种方式，以下是示例代码：
@@ -163,7 +163,7 @@ pid=$!
 wait ${pid}
 ```
 
-上代码表示当 bash 进程收到 *SIGINT* 或 *SIGQUIT* 或 *SIGTERM* 信号后会执行函数 `shutdown`，进而会发送 *SIGQUIT* 给 worker 进程。
+上代码表示当 bash 进程收到 *SIGINT* 或 *SIGQUIT* 或 *SIGTERM* 信号后会执行函数 `shutdown`，进而会发送 *SIGQUIT* 给 worker 进程并等待 worker 进程结束。
 
 ## 总结
 
