@@ -2,6 +2,9 @@
 title: Linux 中关于 bash 不传递信号
 date: 2016-07-01 09:39:14
 tags:
+- PHP
+- Resque
+- Linux
 ---
 
 ## 引言

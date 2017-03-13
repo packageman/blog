@@ -2,6 +2,8 @@
 title: Performance Tunning How To
 date: 2016-05-27 14:11:14
 tags:
+- MongoDB
+- Nginx
 ---
 
 ## 几个衡量指标
