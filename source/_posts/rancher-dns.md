@@ -2,8 +2,8 @@
 title: Rancher DNS 实现原理总结
 date: 2017-03-06 09:03:14
 tags:
-- Rancher
-- DNS
+  - Rancher
+  - DNS
 ---
 
 有关 Rancher dns 的用途[官网](https://docs.rancher.com/rancher/v1.5/en/cattle/internal-dns-service/)已经说的很明白了，我就不再画蛇添足了 :)
