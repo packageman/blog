@@ -13,7 +13,7 @@ tags:
 
 ### Cache-Control
 
-HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Expires* Header, *Cache-Control* 既可以用于请求头中，也可以用于响应头中，这里我们先讨论响应头中的。
+HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Expires* 和 *Pragma*, *Cache-Control* 既可以用于请求头中，也可以用于响应头中，这里我们先讨论响应头中的。
 
 *Cache-Control* 作为响应头时主要有以下三个作用：
 
@@ -90,7 +90,7 @@ server {
 
 ## 特别说明
 
-在使用 Chrome 浏览器的时候：
+在使用 Chrome 浏览器(版本 56.0.2924.87)的时候：
 
 - 按 *F5/Ctrl+R* 刷新时会先从本地缓存中加载资源，如果缓存过期，再进行 *缓存协商*
 - 按 *Ctrl+F5/Ctrl+Shift+R* 进行强制刷新时将既不使用本地缓存也不进行 *缓存协商* (这是通过在请求头中设置 *Cache-Control: no-cache* 实现的)
