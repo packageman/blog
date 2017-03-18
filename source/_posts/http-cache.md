@@ -110,7 +110,10 @@ server {
 >**Unspecified end-to-end revalidation**
 >&nbsp;&nbsp;&nbsp;&nbsp;The request includes "max-age=0" cache-control directive, which forces each cache along the path to the origin server to revalidate its own entry, if any, with the next cache or server. The initial request does not include a cache-validating conditional; the first cache along the path (if any) that holds a cache entry for this resource includes a cache-validating conditional with its current validator.
 
-- 思考：HTTP 缓存在 CDN(代理服务器) 中的应用。HTTP 缓存在分布式系统中需要注意的地方
+## 思考
+
+- HTTP 缓存在 CDN(代理服务器) 中的应用是怎样的？
+- HTTP 缓存在分布式系统中需要注意的地方
 
 ## 参考
 
