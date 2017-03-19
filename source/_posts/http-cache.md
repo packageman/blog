@@ -13,7 +13,7 @@ tags:
 
 ### Cache-Control
 
-HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Expires* 和 *Pragma*, *Cache-Control* 既可以用于请求头中，也可以用于响应头中，这里我们先讨论响应头中的。
+HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Expires* 和 *Pragma*。*Cache-Control* 既可以用于请求头中，也可以用于响应头中，这里我们先讨论响应头中的。
 
 *Cache-Control* 作为响应头时主要有以下三个作用：
 
@@ -34,9 +34,9 @@ HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Ex
 - `max-age=<seconds>`: 设置缓存时间，设置单位为秒。本地缓存和共享缓存都可以
 - `s-maxage=<seconds>`: 覆盖 max-age 属性。只在共享缓存中起作用。私有缓存中它被忽略
 
-*重新验证和重新加载*
+*重新验证和(重新加载)*
 
-- `must-revalidate`: 缓存必须在使用之前验证旧资源的状态，并且不可使用过期资源
+- `must-revalidate`: 缓存必须在使用之前验证旧资源(stale resources)的状态，并且不可使用过期资源。
 - `proxy-revalidate`: 与 `must-revalidate` 相同，但它仅适用于共享缓存(例如代理)，并被私有缓存忽略
 
 
@@ -44,7 +44,7 @@ HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Ex
 
 ### ETag/If-None-Match, Last-Modified/If-Modified-Since
 
-上面我们提到的 *重新验证和重新加载* 的问题就是通过 *ETag/If-None-Match* 或 *Last-Modified/If-Modified-Since* 来进行的。
+上面我们提到的 *重新验证* 就是通过 *ETag/If-None-Match* 或 *Last-Modified/If-Modified-Since* 来进行的。
 
 *ETag* 用于 HTTP 响应头中，它是文档版本的标识符。通常是内容的 MD5 摘要值。如：
 
@@ -52,7 +52,7 @@ HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Ex
 ETag: "33a64df551425fcc55e4d42a148795d9f25f89d4"
 ```
 
-*If-None-Match* 用于 HTTP 请求头中，用于验证缓存中的内容相对于服务器是否是最新的。当第一次某一资源时返回的 *ETag* 是 "33a64df551425fcc55e4d42a148795d9f25f89d4"，在客户端的本地缓存过期后或配置了需要重新验证，客户端再次请求同一资源时会在请求头中加入 *If-None-Match*，值为缓存中 *ETag* 的值，即 "33a64df551425fcc55e4d42a148795d9f25f89d4"。
+*If-None-Match* 用于 HTTP 请求头中，用于验证缓存中的内容相对于服务器是否是最新的。当客户端第一次访问某一资源时，如果响应中设置了可以被缓存(如：*Cache-Control: max-age=3600*), 客户端会将响应内容连同响应头一起缓存起来(其中就包含 *ETag*，假设值为 "33a64df551425fcc55e4d42a148795d9f25f89d4")，客户端再次请求同一资源时，会先从本地缓存中寻找并验证其是否过期，如果已经过期并且设置了需要进行重新验证，客户端会在发起的请求中加入 *If-None-Match* 头，值为缓存中 *ETag* 的值，即 "33a64df551425fcc55e4d42a148795d9f25f89d4"。
 
 ```
 If-None-Match: "33a64df551425fcc55e4d42a148795d9f25f89d4"
