@@ -33,6 +33,8 @@ HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Ex
 
 - `max-age=<seconds>`: 设置缓存时间，设置单位为秒。本地缓存和共享缓存都可以
 - `s-maxage=<seconds>`: 覆盖 max-age 属性。只在共享缓存中起作用。私有缓存中它被忽略
+- `max-stale[=<seconds>]`: 表面客户端愿意接收一个已经过期的资源。可选的设置一个时间(单位秒)，表示响应不能超过的过时时间
+- `min-fresh=<seconds>`: 表示客户端希望在指定的时间内获取最新的响应
 
 *重新验证和(重新加载)*
 
