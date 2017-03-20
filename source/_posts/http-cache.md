@@ -66,9 +66,17 @@ If-None-Match: "33a64df551425fcc55e4d42a148795d9f25f89d4"
 
 当 *ETag* 和 *Last-Modefied* 同时使用时，*ETag* 优先级要高于 *Last-Modefied*。
 
+### Revved resources
+
+在真实场景中，我们往往希望静态资源文件在用户本地缓存的时间越长越好，因为它们不常更新，但当它们更新的时候，我们又希望用户可以及时地获取到最新数据。这个要怎么实现呢？ 这时 [Revving](https://www.stevesouders.com/blog/2008/08/23/revving-filenames-dont-use-querystring/) 便闪亮登场了。
+
+Revving 主要是以一种特殊的方式为资源命名。比如以文件内容的 MD5 摘要值命名，每当文件内容改变时，其文件名也将改变，由于客户端缓存的与新文件的名字不同会使客户端主动发起请求到服务端获取最新数据，从而解决了”每次服务端有新的文件改变，客户端不能及时更新“的问题。
+
+这种方式的缺点是，如果一个文件内容改变，所有引用这个文件的地方也需要同时修改。(好在现在很多前端编译工具都可以帮助我们完成这一工作，比如 [webpack](https://webpack.github.io/))
+
 ## 应用
 
-对于我们线上的环境是 **在入口文件设置 *Cache-Control: no-cache* 并开启 *ETag*([nginx 中 *Etag* 是默认开启的](http://nginx.org/en/docs/http/ngx_http_core_module.html#etag)) 即每次都会进行重新验证，而对于其它资源文件设置一个很大的缓存过期时间，*Cache-Control: max-age=31536000* （一年），对于除入口文件以外的资源文件以文件内容的 MD5 摘要值命名(现在很多前端编译工具都可以做到，比如 [webpack](https://webpack.github.io/))。**
+对于我们线上的环境是 **在入口文件设置 *Cache-Control: no-cache* 并开启 *ETag*([nginx 中 *Etag* 是默认开启的](http://nginx.org/en/docs/http/ngx_http_core_module.html#etag)) 即每次都会进行重新验证，而对于其它资源文件设置一个很大的缓存过期时间，*Cache-Control: max-age=31536000* （一年），对于除入口文件以外的资源文件以文件内容的 MD5 摘要值命名。**
 
 这样一来可以最大化利用缓存，而且当有新版本上线时。**由于入口文件每次都要重新验证，从而保证客户端获取到的入口文件始终是最新的。而在入口文件中引入的其它资源文件，如果其内容改变了，必会导致其文件名改变(基于内容的 MD5 摘要值变了)，从而导致本地缓存 miss， 客户端便会拉取服务端最新的资源文件。如果内容没变，文件名也不改变，客户端将直接从缓存中获取资源。**
 
@@ -83,7 +91,7 @@ server {
         try_files $uri $uri/ /index.html;
         expires -1;
     }
-    
+
     location ~* \.(css|js|jpg|png|gif)$ {
         expires 365d;
     }
@@ -100,6 +108,8 @@ server {
 扩展：
 
 - 如果客户端的本地缓存还没有过期并且没有设置重新验证，这时如何让请求可以跳过 *本地缓存* 而不跳过 *缓存协商* 呢？答案是在请求头中加入 *Cache-Control: max-age=0*。
+
+如果响应头的 *Cache-Control* 只有 *max-age* 指令（并且没有 *stale-while-revalidate* 指令），客户端会默认使用 *must-revalidate* 策略 ([Chromium 源码](https://chromium.googlesource.com/chromium/src/net/+/master/http/http_response_headers.cc#984)), 在重新验证之后会 **重置过期时间** 。
 
 以下是 [rfc2616 的部分说明](https://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.9.3)：
 
@@ -121,6 +131,7 @@ server {
 
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control
 - https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/ETag
+- https://developer.mozilla.org/en-US/docs/Web/HTTP/Caching
 - https://zhuanlan.zhihu.com/p/25512679
 - https://github.com/fouber/blog/issues/6
 - http://stackoverflow.com/questions/1046966/whats-the-difference-between-cache-control-max-age-0-and-no-cache
