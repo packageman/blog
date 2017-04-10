@@ -4,6 +4,7 @@ date: 2016-05-27 14:11:14
 tags:
   - MongoDB
   - Nginx
+  - Cache
 ---
 
 ## 几个衡量指标
@@ -180,8 +181,7 @@ db.order.createIndex({restaurantId: 1, isDeleted: 1, isExpired: 1}, {background:
 
 其中黑色表示 MongoDB CPU 利用率，蓝色表示 Web Server 的 CPU 利用率
 
-可以看到 MongoDB 的 CPU 已经跑到 100%，可以推断出 **性能瓶颈出现在 Web Server 这边**
-
+可以看到 Web Server 的 CPU 已经跑到 100%，可以推断出 **性能瓶颈出现在 Web Server 这边**
 
 ### 优化 code
 
@@ -200,7 +200,7 @@ db.order.createIndex({restaurantId: 1, isDeleted: 1, isExpired: 1}, {background:
 
 发现问题：
 
-- 其中 *验证餐厅是否下线* 、 *检测客户端语言* 、 *检测客户端语言* 都调用了 `getToken` 方法去查询数据库获取 token
+- 其中 *验证餐厅是否下线* 、 *检测客户端语言* 、 *授权* 都调用了 `getToken` 方法去查询数据库获取 token
 - Lock::accquireLock() 需要用到餐厅的 setting, 而 seting 是从 restaurant 中获取的，然后方法的参数接收的是 `restaurantId` 就需要查询一次数据库根据 `restaurantId` 获取 restaurant
 - updateInElastic() 中发现有一句数据库调用代码只有在 if 语句中才用到的却写到了 if 语句外面
 
@@ -256,8 +256,8 @@ db.order.createIndex({restaurantId: 1, isDeleted: 1, isExpired: 1}, {background:
 }
 ```
 
-使用目前的索引 `{restaurantId: 1, isDeleted: 1, isExpired: 1}` 就会导致随着时间的推移，query 订单要遍历的文档数目变得越来越多， 有没有一种方法可以把订单按天索引，这样每次 query 时数据库要遍历的文档数量都稳定在一家餐厅一天的订单数量？
-按照这个想法，在订单数据结构中引入一个额外的字段 `dineAt` 用于表示订单的就餐时间(如果是预约类型的订单就等于 `reserveAt` 的时间，如果是直接到店的订单就等于 `seatedAt` 的时间)，这样一来，查询条件就变成了下面这样：
+使用目前的索引 `{restaurantId: 1, isDeleted: 1, isExpired: 1}` 就会导致随着时间的推移，查询订单时要遍历的文档数目变得越来越多， 有没有一种方法可以把订单按天索引，这样每次查询时数据库要遍历的文档数量都稳定在一家餐厅一天的订单数量？
+按照这个想法，在订单数据结构中引入一个额外的字段 `dineAt` 用于表示订单的就餐时间(如果是预约类型的订单就等于 `reserveAt` 的时间，如果是散客(直接到店的)订单就等于 `seatedAt` 的时间)，这样一来，查询条件就变成了下面这样：
 
 ```
 {
@@ -300,12 +300,12 @@ db.order.createIndex({restaurantId: 1, isDeleted: 1, isExpired: 1}, {background:
 
 更新之前的索引为 `{restaurantId: 1, dineAt: 1, isDeleted: 1, isExpired: 1}`，现在再查询订单时要遍历的文档数目就固定在了一天一家餐厅的量上了 ：）
 
-当然这样的改动也不是没有代价的，下面是我想到的一些坏处
+当然这样的改动也不是没有代价的，比如：
 
 - 数据库中多了一个字段，每次创建订单和更新订单时都需要维护这个字段
 - 需要占用更多的数据库服务器资源去维护这个索引
 
-相比它所带来的好处，我想这些坏处是可以忍受的
+相比它所带来的好处，我想这些是可以忍受的
 
 ### 优化 Web 服务器 (Nginx)
 
@@ -370,6 +370,8 @@ TFO 的作用是用来优化 TCP 握手过程。客户端第一次建立连接�
     - Server 返回 `Last-Modified`（最后修改时间），Client 下一次请求带上 `If-Modified-Since: 上次 Last-Modified 的内容`
     - Server 返回 `ETag`（内容特征），Client 下一次请求带上 `If-None-Match: 上次 ETag 的内容`
 
+更多关于 HTTP 缓存优化可以参考[这里](https://merrychris.com/2017/03/18/http-cache/)
+
 #### HTTPS 优化
 
 由于我们的服务是部署在 https 的，所以对 https 的优化还是十分有必要的，主要包括以下几点：
@@ -427,5 +429,4 @@ TPS 相比一台 Web Server 的情况增长了一倍，响应时间也得到了�
 
 ## 结语
 
-到此我的性能测试也暂时告一段落了，还有很多地方需要学习，今天看到一篇文章里面就说到了一些性能优化需要注意的地方，在这里分享给大家
-http://www.tuicool.com/articles/J3iimm
+到此我的性能测试也暂时告一段落了，还有很多地方需要学习，有什么问题或写的不对的地方欢迎大家留言。
