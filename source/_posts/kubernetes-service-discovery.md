@@ -25,4 +25,6 @@ tags:
 - Deployment: The Deployment is responsible for creating and updating instances of your application.
 - Pod: A Pod is a Kubernetes abstraction that represents a group of one or more application
 
+<!-- more -->
+
 ## 未完待续...

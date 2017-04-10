@@ -22,6 +22,8 @@ HTTP Header *Cache-Control* 在 HTTP1.1 中引入，旨在替代 HTTP1.0 中 *Ex
 - 控制缓存的到期(Expiration)
 - 控制缓存是否需要重新验证和重新加载(Revalidation and reloading)
 
+<!-- more -->
+
 *可缓存性*：
 
 - `private`：表示它只应该存在本地缓存
