@@ -1,5 +1,5 @@
 ---
-title: MySQL count(*) take too long
+title: MySQL count(*) takes too long
 date: 2017-11-02 15:06
 tags:
   - MySQL
