@@ -88,21 +88,21 @@ DO
 
 首先我手头上有两个 MySQL 服务，一个是 5.7.15 版本，一个是 5.7.19 版本。两个数据库存储了相同数据
 
-在使用 5.7.19 版本的 MySQL 执行 `SELECT COUNT(*) FROM user` 语句时，结果如下，同时给出了 explain 的结果
+在使用 5.7.19 版本的 MySQL 执行 `SELECT COUNT(*) FROM user` 语句时，结果如下，同时给出了 [Explain](https://dev.mysql.com/doc/refman/5.7/en/explain.html) 的结果
 
 ![mysql count higher version](/images/mysql-count/mysql_count_higher_version.png)
 
 ![mysql count explain higher version](/images/mysql-count/mysql_count_explain_higher_version.png)
 
-可以看到在使用 5.7.18 及以上版本的 MySQL 执行 `COUNT(*)` 的时候，14万的数据响应时间还不到 40ms。从 Explain 的结果可以看出，MySQL 在执行 `COUNT(*)` 的时候正如文档所说的是 *traversing a smaller secondary index* 。
+可以看到在使用 5.7.18 及以上版本的 MySQL 执行 `COUNT(*)` 的时候，14w的数据响应时间还不到 40ms。从 Explain 的结果可以看出 MySQL 在执行 `COUNT(*)` 的时候正如文档所说的是 *traversing a smaller secondary index* 。
 
-同样的测试在 5.7.15 版本上执行，结果如下
+同样的测试在 5.7.15 版本上进行，结果如下
 
 ![mysql count lower version](/images/mysql-count/mysql_count_lower_version.png)
 
 ![mysql count lower version](/images/mysql-count/mysql_count_explain_lower_version.png)
 
-这次执行 `COUNT(*)` 的响应时间达到了 14s，Explain 的结果显示没有 **using index**。而按照文档的描述，对于 5.7.18 版本以前的 MySQL 在执行 `COUNT(*)` 语句的时候应该会使用 clustered index，然而从 Explain 的结果和查询的响应时间上来看似乎都不是这样。
+这次执行 `COUNT(*)` 的响应时间达到了 14s，Explain 的结果显示没有 "*using index*"。而按照文档的描述，对于 5.7.18 版本以前的 MySQL 在执行 `COUNT(*)` 语句的时候应该会使用 clustered index，然而从 Explain 的结果和查询的响应时间上来看似乎都不是这样。
 
 ### Make MySQL count data by using index explicitly
 
@@ -117,7 +117,7 @@ DO
 
 ## 思考
 
-其实，上面的通过加 `WHERE` 查询条件的优化方式，随着数据的不断增长，依然会出现性能问题，毕竟时间复杂度是O(n)嘛。而使用 counter table 的方式就显得更稳定一些了。
+其实，上面的通过加 `WHERE` 查询条件的优化方式，随着数据的不断增长，依然会出现性能问题，毕竟时间复杂度是 O(n) 嘛。而使用 **counter table** 的方式就显得更稳定一些了。
 
 ## 参考
 
