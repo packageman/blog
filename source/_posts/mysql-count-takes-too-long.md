@@ -13,11 +13,11 @@ tags:
 
 ## 监控服务集成
 
-这里我使用了 [听云](http://www.tingyun.com/) 的服务做为我的性能分析工具，具体的集成步骤大家看文档就好了，这里不再赘述。
+这里我使用了 [听云](http://www.tingyun.com/) 的服务作为我的性能分析工具，具体的集成步骤大家看文档就好了，这里不再赘述。
 
 ## 发现问题
 
-集成好 [听云](http://www.tingyun.com/) 后，点了几下响应特别慢的页面，看了下听云控制台上的数据。发现一个 `SELECT COUNT(*) FROM user` 的查询就用了13秒之多，况且数据库中只有14w条数据就要花费这么长的时间。
+集成好 [听云](http://www.tingyun.com/) 后，随便点几下响应特别慢的页面，然后在听云控制台上看一下分析数据。发现一个 `SELECT COUNT(*) FROM user` 的查询就用了13秒之多，况且数据库中只有14w条数据就要花费这么长的时间。
 
 ![improve with nothing](/images/mysql-count/mysql_count_result.png)
 
