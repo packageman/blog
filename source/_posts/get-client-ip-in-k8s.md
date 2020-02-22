@@ -59,9 +59,8 @@ proxy_set_header X-Forwarded-Proto      $pass_access_scheme;
 
 以上代码证实了我的猜想。
 
-::: warning
-X-Forwarded-For 请求头是不可靠的，客户端可以人为伪造。
-:::
+
+**特别说明：X-Forwarded-For 请求头是不可靠的，客户端可以人为伪造。**
 
 ### 设置 use-forwarded-headers 配置项
 
