@@ -59,6 +59,10 @@ proxy_set_header X-Forwarded-Proto      $pass_access_scheme;
 
 以上代码证实了我的猜想。
 
+::: warning
+X-Forwarded-For 请求头是不可靠的，客户端可以人为伪造。
+:::
+
 ### 设置 use-forwarded-headers 配置项
 
 查看 nginx-ingress-controller 文档，发现可以通过设置 [`use-forwarded-headers: true`](https://kubernetes.github.io/ingress-nginx/user-guide/nginx-configuration/configmap/#use-forwarded-headers) 使得 nginx-ingress-controller 将 X-Forwarded-For 设置为负载均衡传过来的客户端真实 IP。
